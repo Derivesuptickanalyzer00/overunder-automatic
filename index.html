@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Trader - Live Market Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      padding: 20px;
+    }
+    .market-title {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .live-price {
+      font-size: 36px;
+      font-weight: bold;
+      color: #2a9d8f;
+      margin-bottom: 20px;
+    }
+    .status {
+      font-size: 16px;
+      color: #e76f51;
+    }
+    .signal {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #d62828;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Smart Trader - Live Market Data</h1>
+    <div class="market-title">Volatility 100 Index</div>
+    <div class="live-price" id="livePrice">Loading...</div>
+    <div class="status" id="status">Connecting to Deriv ...</div>
+    <div class="signal" id="signal"></div>
+  </div>
+
+  <script>
+    // Replace this with your Deriv API token
+    const DERIV_API_TOKEN = 'your_api_token_here';
+
+    // WebSocket connection to Deriv API
+    const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
+
+    const statusElement = document.getElementById('status');
+    const priceElement = document.getElementById('livePrice');
+    const signalElement = document.getElementById('signal');
+
+    let consecutiveUnderRangeCount = 0;
+
+    ws.onopen = () => {
+      statusElement.textContent = 'Connected to Deriv API. Fetching data...';
+
+      // Subscribe to Volatility 100 Index ticks
+      ws.send(JSON.stringify({
+        ticks: 'R_100', // Volatility 100 Index symbol
+        subscribe: 1,
+        passthrough: { token: DERIV_API_TOKEN }
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.error) {
+        statusElement.textContent = `Error: ${data.error.message}`;
+        return;
+      }
+
+      if (data.tick) {
+        const price = data.tick.quote;
+        const lastDigit = Number(price.toString().slice(-1)); // Get the last digit of the price
+
+        priceElement.textContent = price.toFixed(2); // Show live price
+        statusElement.textContent = 'Live data updated.';
+
+        if (lastDigit >= 0 && lastDigit <= 6) {
+          consecutiveUnderRangeCount++;
+        } else {
+          consecutiveUnderRangeCount = 0; // Reset count if condition is not met
+        }
+
+        if (consecutiveUnderRangeCount >= 3) {
+          signalElement.textContent = 'Signal: Under Purchase';
+        } else {
+          signalElement.textContent = ''; // Clear the signal if condition is no longer met
+        }
+      }
+    };
+
+    ws.onerror = (error) => {
+      statusElement.textContent = `Connection error: ${error.message}`;
+    };
+
+    ws.onclose = () => {
+      statusElement.textContent = 'Connection closed. Reconnecting...';
+    };
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Chart with volatility Market</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #eaf7f8;
+      flex-direction: column;
+      padding: 0 10px;
+    }
+    .chart-container {
+      width: 100%;
+      max-width: 90%; /* Adjusted for mobile size */
+      height: 30vh; /* Adjusted for mobile view */
+      margin-bottom: 20px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .market-buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .market-buttons button {
+      margin: 0 10px;
+      padding: 10px;
+      background-color: #62a4ab;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .market-buttons button:hover {
+      background-color: #4b8b8d;
+    }
+  </style>
+</head>
+<body>
+  <h1>Live Chart Volatility Market</h1>
+
+  <div class="market-buttons">
+    <button onclick="selectMarket('R_10')">Volatility 10</button>
+    <button onclick="selectMarket('R_25')">Volatility 25</button>
+    <button onclick="selectMarket('R_50')">Volatility 50</button>
+    <button onclick="selectMarket('R_75')">Volatility 75</button>
+    <button onclick="selectMarket('R_100')">Volatility 100</button>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="dynamicChart"></canvas>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('dynamicChart').getContext('2d');
+
+    // Initialize the chart
+    const dynamicChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [], // Dynamic labels
+        datasets: [{
+          label: 'Price',
+          data: [], // Dynamic data points
+          borderColor: '#62a4ab',
+          backgroundColor: 'rgba(98, 164, 171, 0.2)',
+          borderWidth: 2,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true
+          },
+          tooltip: {
+            enabled: true
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grid: {
+              color: '#d3e9eb'
+            }
+          },
+          x: {
+            grid: {
+              color: '#d3e9eb'
+            }
+          }
+        }
+      }
+    });
+
+    // API Token and WebSocket setup
+    const API_TOKEN = 'Je5KwLgHrMOuIya'; // Replace with your API token
+    const API_URL = 'wss://ws.binaryws.com/websockets/v3?app_id=67562'; // Deriv WebSocket URL
+
+    let connection = null;
+
+    function selectMarket(market) {
+      if (connection && connection.readyState === WebSocket.OPEN) {
+        connection.close(); // Close the previous connection before opening a new one
+      }
+
+      connection = new WebSocket(API_URL);
+
+      connection.onopen = () => {
+        console.log('WebSocket connected');
+        connection.send(JSON.stringify({ authorize: API_TOKEN }));
+
+        connection.send(JSON.stringify({
+          ticks: market, // Subscribe to the selected market
+          subscribe: 1
+        }));
+      };
+
+      connection.onmessage = (event) => {
+        const response = JSON.parse(event.data);
+
+        if (response.msg_type === 'tick') {
+          const tick = response.tick;
+          const price = tick.quote;
+          const time = new Date(tick.epoch * 1000).toLocaleTimeString();
+
+          // Update chart with new data
+          dynamicChart.data.labels.push(time);
+          dynamicChart.data.datasets[0].data.push(price);
+
+          // Remove old data to keep the chart moving
+          if (dynamicChart.data.labels.length > 10) {
+            dynamicChart.data.labels.shift();
+            dynamicChart.data.datasets[0].data.shift();
+          }
+
+          dynamicChart.update();
+        } else if (response.msg_type === 'authorize') {
+          console.log('Authorization successful');
+        } else {
+          console.log('Other response:', response);
+        }
+      };
+
+      connection.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      connection.onclose = () => {
+        console.log('WebSocket disconnected');
+      };
+    }
+  </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
