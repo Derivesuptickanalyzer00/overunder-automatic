@@ -1,4 +1,117 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 1); /* Full black background, fully opaque */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Ensure overlay stays above other content */
+        }
+
+        #security-box {
+            background-color: white;
+            padding: 40px;  /* Increased padding for larger box */
+            border-radius: 8px;
+            text-align: center;
+            width: 500px;  /* Increased width */
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 18px;  /* Increased font size for better readability */
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;  /* Increased padding for input field */
+            margin-top: 15px;  /* Increased top margin */
+            margin-bottom: 15px;  /* Increased bottom margin */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;  /* Slightly larger text for better readability */
+        }
+
+        button {
+            padding: 12px 25px;  /* Increased padding for button */
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;  /* Larger button text */
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #error-message {
+            font-size: 14px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <div id="security-box">
+            <h2>Enter Password</h2>
+            <input type="password" id="password-input" placeholder="Password">
+            <button id="submit-btn">Submit</button>
+            <p id="error-message" style="color:red; display:none;">Incorrect password. Please try again.</p>
+        </div>
+    </div>
+
+    <script>
+        // Array of 50 possible valid passwords
+        const validPasswords = [
+            "FG622H@$", "FRB6781&", "AH75$BKa", "ADR67#@1", "LH5399&@", "AQM628$@", "ZQ802$@1", "DRY843!@", "AL671@$7", "GF546@$qHj",
+            "Ad635@Hg", "FA87023@#ap", "Ad635@Hg", "LGF4673@d", "GYD547@e", "D@&AJ754", "FA87023@#ap", "password18", "password19", "password20",
+            "password21", "password22", "password23", "password24", "password25", "password26", "password27", "password28", "password29", "password30",
+            "password31", "password32", "password33", "password34", "password35", "password36", "password37", "password38", "password39", "password40",
+            "password41", "password42", "password43", "password44", "password45", "password46", "password47", "password48", "password49", "password50"
+        ];
+
+        document.getElementById("submit-btn").addEventListener("click", function() {
+            const passwordInput = document.getElementById("password-input");
+            const password = passwordInput.value;
+            
+            // Check if the entered password is in the validPasswords array
+            if (validPasswords.includes(password)) {
+                document.getElementById("overlay").style.display = "none";  // Hide the overlay
+            } else {
+                document.getElementById("error-message").style.display = "block";  // Show error message
+            }
+        });
+
+        document.getElementById("password-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                document.getElementById("submit-btn").click();
+            }
+        });
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
